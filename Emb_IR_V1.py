@@ -2,7 +2,6 @@
 import math
 import ast
 import numpy as np
-from collections import Counter
 from nltk.tokenize import RegexpTokenizer  ### for nltk word tokenization
 tokenizer = RegexpTokenizer(r'\w+')
 
@@ -58,18 +57,17 @@ def BM25_score(Question, Corpus, IDF, Doc_Length_all, Doc_Avg_Len):
             Doc_dict=ast.literal_eval(Document1)
             Doc_Length = Doc_Length_all[doc_ind-1]
 
-
-
-            for ques1 in Question:
-                Ques_terms = tokenizer.tokenize(ques1.lower())
-                Ques_terms=list(set(Ques_terms))
+            for Ques_terms in Question:
                 for term1 in Ques_terms:
                     if term1 in Doc_dict.keys():
                        dummy_TF=Doc_dict[term1]
                     else:
                        dummy_TF=0
+                    Score=0
+                    upper = dummy_TF*(K+1)
+                    below = (dummy_TF + K*(1-b+ (b*(Doc_Length/Doc_Avg_Len))) )
 
-                    Score=Score+ ( (IDF[str(term1)]) * (dummy_TF*(K+1)/float(dummy_TF + K*(1-b+ (b*(Doc_Length/float(Doc_Avg_Len)))))  )  )
+                    Score=Score+ ( (IDF[term1]) * upper / below )
 
                 Ques_score.append(Score)
                 Score=0
@@ -87,16 +85,19 @@ def BM25_score(Question, Corpus, IDF, Doc_Length_all, Doc_Avg_Len):
 ###################
 
 Question_file = open('training_set.tsv', 'r')
-Question = "" #[]
+ #[]
 Correct_ans = []#[]
-Option_A ="" # []  ####### These will contain justification text also and later on, becky features will be added.
-Option_B = "" #[]
-Option_C = "" #[]
-Option_D = "" #[]
+#[]
 
 
 All_questions=[]
+
 for line1 in Question_file:
+    Question = ""
+    Option_A = ""  # []  ####### These will contain justification text also and later on, becky features will be added.
+    Option_B = ""  # []
+    Option_C = ""  # []
+    Option_D = ""
     Cand_score = []
     line1 = line1.strip()
     cols = line1.split("\t")
@@ -112,13 +113,19 @@ for line1 in Question_file:
     Option_C=(cols[10][C_index + 4:D_index - 1])
     Option_D=(cols[10][D_index + 4:])
 
-    Ques1=Question + " "+ Option_A  ###### Question + Candidate answer 1
+    Question=tokenizer.tokenize(Question.lower())
+    Option_A=tokenizer.tokenize(Option_A.lower())
+    Option_B = tokenizer.tokenize(Option_B.lower())
+    Option_C = tokenizer.tokenize(Option_C.lower())
+    Option_D = tokenizer.tokenize(Option_D.lower())
 
-    Ques2= Question + " " + Option_B
+    Ques1=Question + Option_A  ###### Question + Candidate answer 1
 
-    Ques3 = Question + " " + Option_C
+    Ques2= Question + Option_B
 
-    Ques4 = Question + " " + Option_D
+    Ques3 = Question + Option_C
+
+    Ques4 = Question + Option_D
 
     All_questions+=[Ques1,Ques2,Ques3,Ques4]  ###### All_questions will be having 10000 questions.
 
