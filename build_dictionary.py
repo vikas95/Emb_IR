@@ -2,7 +2,9 @@ import math
 from nltk.tokenize import RegexpTokenizer  ### for nltk word tokenization
 tokenizer = RegexpTokenizer(r'\w+')
 
-
+from nltk.stem.wordnet import WordNetLemmatizer
+lmtzr = WordNetLemmatizer()
+#lmtzr.lemmatize('cars')
 
 ###################
 
@@ -53,12 +55,14 @@ def get_weights(file1, IDF):
         line=line.lower()
         #words=line.split()
         words=tokenizer.tokenize(line)
+
         #print(words)
         if words[0]=="section" or words[0]=="page":
            #print("something")
            continue
 
         else:
+           words = [lmtzr.lemmatize(w1) for w1 in words]
            Document={}  ########## dictionary - having terms as key and TF as values of the key.
            Doc_len.append(len(words))
            unique_words=list(set(words))
