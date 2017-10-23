@@ -80,8 +80,8 @@ def Word2Vec_score(Question, IDF_Mat, Corpus):
 
     for Jind, Justifications in enumerate(Corpus):
         print (Jind)
-        if Jind==10:
-           break
+
+        Justification_set = []
         Justifications = Justifications.strip()
         cols = Justifications.split("\t")  ## cols[0] has the question number, cols[1]  has the candidate option number for that specific question.
         Feature_col = cols[6].split(";;")
@@ -152,7 +152,6 @@ All_Ques_terms=[]
 for line1 in Question_file:
     counter+=1
     print(counter)
-
     Question = ""
     Option_A = ""  # []  ####### These will contain justification text also and later on, becky features will be added.
     Option_B = ""  # []
