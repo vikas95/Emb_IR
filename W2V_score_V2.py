@@ -98,11 +98,11 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, All_terms):
             for terms1 in All_terms:
                 Common_term_sum+=len(list(set(Doc_dict.keys()) & terms1))
 
-            if Common_term_sum<10: ### (not relevant to any of the question in the batch)
+            if Common_term_sum<1000: ### (not relevant to any of the question in the batch)
                #print("Yep, there are cases like these....")
                pass
             else:
-                #
+                print ("what is wrong:::::::: ")
                 Doc_Matrix = np.empty((0, emb_size), float)  ####################### DIMENSION of EMBEDDING
                 for key in Doc_dict:
                     if key in embeddings_index.keys():
@@ -117,18 +117,17 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, All_terms):
 
 
                     for qind, ques1 in enumerate(Question):
-                        if len(list(set(Doc_dict.keys()).intersection(All_terms[int(qind/4)])))<2:  ## atleast one of the 4 option has 3 common terms
+                        if len(list(set(Doc_dict.keys()).intersection(All_terms[int(qind/4)])))<4:  ## atleast one of the 4 option has 3 common terms
                            pass
                         else:
-                            # print("what is wrong:::::::: ")
                             Score=np.matmul(ques1,Doc_Matrix)
                             max_score=np.amax(Score,axis=1)
                             max_score=np.multiply(IDF_Mat[qind],max_score)
                             max_score=(sum(max_score)).item(0)
-                            #min_score=np.amin(Score,axis=1)
-                            #min_score = np.multiply(IDF_Mat[qind], min_score)
-                            #min_score=(sum(min_score)).item(0)
-                            total_score=max_score  ## +min_score
+                            min_score=np.amin(Score,axis=1)
+                            min_score = np.multiply(IDF_Mat[qind], min_score)
+                            min_score=(sum(min_score)).item(0)
+                            total_score=max_score+min_score
                             if doc_ind>Top_docs:
                                Document_score[qind].append(total_score)  ## here Top_docs+1, but will be reduced in below step
                                Document_score[qind]=heapq.nlargest(Top_docs,Document_score[qind])  ### this will keep only Top_docs
@@ -164,7 +163,7 @@ Final_scores=[]
 All_terms=[]
 All_Ques_terms=[]
 start=1
-End=start+49
+End=start+100
 for line1 in Question_file:
     counter+=1
     print(counter)
