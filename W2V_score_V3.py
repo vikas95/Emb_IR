@@ -1,4 +1,3 @@
-
 import heapq
 import math
 import ast
@@ -9,6 +8,14 @@ tokenizer = RegexpTokenizer(r'\w+')
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
 
+import nltk
+from nltk.corpus import stopwords
+stop_words=stopwords.words('english')
+stop_words=[lmtzr.lemmatize(w1) for w1 in stop_words]
+stop_words=list(set(stop_words))
+# stop_words=[]
+print(stop_words)
+print(len(stop_words))
 """
 Vocab_file=open("Vocab.txt","r")
 for line1 in Vocab_file:
@@ -17,10 +24,10 @@ for line1 in Vocab_file:
 becky_emb=open("ss_qz_04.dim50vecs.txt","r", encoding='utf-8')
 embeddings_index = {}
 # glove_emb = open('glove.6B.100d.txt','r', encoding='utf-8')
-# f = open('glove.840B.300d.txt','r', encoding='utf-8')
+f = open('glove.840B.300d.txt','r', encoding='utf-8')
 
 #f = open('ss_qz_04.dim50vecs.txt')
-for line in becky_emb:
+for line in f:
     values = line.split()
     word = values[0]
     try:
@@ -68,7 +75,7 @@ def Word2Vec_score(Question, IDF_Mat, Corpus):
 
     Doc_Score=[0]
 
-    Justification_threshold=20
+    Justification_threshold=15
     max_score=0
     min_score=0
     #Ques_score=[]
@@ -94,14 +101,16 @@ def Word2Vec_score(Question, IDF_Mat, Corpus):
 
         for just_ind, just1 in enumerate(Justification_set):
             Doc_set = tokenizer.tokenize(just1)
-            Doc_set=list(set(Doc_set))
+            # Doc_set=list(set(Doc_set))
             Doc_set = [lmtzr.lemmatize(w1) for w1 in Doc_set]
+            Doc_set = [w for w in Doc_set if not w in stop_words]
 
             Doc_Matrix = np.empty((0, emb_size), float)  ####################### DIMENSION of EMBEDDING
+            Doc_len=0
             for key in Doc_set:
                 if key in embeddings_index.keys():
                    Doc_Matrix=np.append(Doc_Matrix, np.array([embeddings_index[key]]), axis=0)
-
+                   Doc_len+=1
             if Doc_Matrix.size==0:
                pass
             else:
@@ -116,7 +125,8 @@ def Word2Vec_score(Question, IDF_Mat, Corpus):
                 min_score=np.amin(Score,axis=1)
                 min_score = np.multiply(IDF_Mat[Jind], min_score)
                 min_score=(sum(min_score)).item(0)
-                total_score=max_score+min_score
+                total_score=max_score + (min_score)
+                # total_score=total_score/float(ques1.shape[0])
                 Document_score[Jind].append(total_score)
                 Justification_ind[Jind].append(just_ind)
 
@@ -132,6 +142,7 @@ def Ques_Emb(ques1, IDF):
         if q_term in embeddings_index.keys():
            Ques_Matrix = np.append(Ques_Matrix, np.array([embeddings_index[q_term]]), axis=0)
            IDF_Mat = np.append(IDF_Mat, np.array([[IDF[q_term]]]), axis=0)
+
     return Ques_Matrix, IDF_Mat
 
 
@@ -174,18 +185,23 @@ for line1 in Question_file:
 
     Question = tokenizer.tokenize(Question.lower())
     Question=[lmtzr.lemmatize(w1) for w1 in Question]
+    Question = [w for w in Question if not w in stop_words]
 
     Option_A = tokenizer.tokenize(Option_A.lower())
     Option_A = [lmtzr.lemmatize(w1) for w1 in Option_A]
+    Option_A = [w for w in Option_A if not w in stop_words]
 
     Option_B = tokenizer.tokenize(Option_B.lower())
     Option_B = [lmtzr.lemmatize(w1) for w1 in Option_B]
+    Option_B = [w for w in Option_B if not w in stop_words]
 
     Option_C = tokenizer.tokenize(Option_C.lower())
     Option_C = [lmtzr.lemmatize(w1) for w1 in Option_C]
+    Option_C = [w for w in Option_C if not w in stop_words]
 
     Option_D = tokenizer.tokenize(Option_D.lower())
     Option_D = [lmtzr.lemmatize(w1) for w1 in Option_D]
+    Option_D = [w for w in Option_D if not w in stop_words]
 
     All_Ques_terms=Question+Option_A+Option_B+Option_C+Option_D
     All_Ques_terms=(set(All_Ques_terms))
@@ -214,9 +230,7 @@ for line1 in Question_file:
 Score_matrix, Justification_matrix = Word2Vec_score(All_questions, IDF_Mat,  file1)
 
 print(Score_matrix)
-out_file=open("Becky_files_W2V_score"+".txt","w")
+out_file=open("Becky_files_W2V_score_15"+".txt","w")
 out_file.write(str(Score_matrix))
 
-print(Justification_matrix)
-out_file1=open("Becky_files_W2V_indexes"+".txt","w")
-out_file1.write(str(Justification_matrix))
+print(len(Score_matrix))
