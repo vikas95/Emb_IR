@@ -21,13 +21,13 @@ Vocab_file=open("Vocab.txt","r")
 for line1 in Vocab_file:
     All_words=ast.literal_eval(line1)
 """
-becky_emb=open("ss_qz_04.dim50vecs.txt","r", encoding='utf-8')
+#becky_emb=open("ss_qz_04.dim50vecs.txt","r", encoding='utf-8')
 embeddings_index = {}
 # glove_emb = open('glove.6B.100d.txt','r', encoding='utf-8')
-#f = open('glove.840B.300d.txt','r', encoding='utf-8')
+f = open('glove.840B.300d.txt','r', encoding='utf-8')
 
 #f = open('ss_qz_04.dim50vecs.txt')
-for line in becky_emb:
+for line in f:
     values = line.split()
     word = values[0]
     try:
@@ -146,16 +146,18 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
 
                 max_score=np.multiply(IDF_Mat[Jind],max_score)
                 # max_score = np.multiply(Doc_IDF_Mat, max_score) ### Becky suggestion which is not working
-                max_score = np.asarray(max_score).flatten()
+                # max_score = np.asarray(max_score).flatten()
+                #max_score=np.sort(max_score)
 
-                max_score = heapq.nlargest(threshold_vals,max_score) ## threshold=2
+                #max_score = heapq.nlargest(threshold_vals,max_score) ## threshold=2
+
                 max_score=(sum(max_score)).item(0)
-
+                #print (max_score)
                 min_score=np.amin(Score,axis=1)
                 min_score = np.multiply(IDF_Mat[Jind], min_score)
                 # min_score = np.multiply(Doc_IDF_Mat_min, min_score)  ### Becky suggestion which is not working
-                min_score = np.asarray(min_score).flatten()
-                min_score = heapq.nlargest(threshold_vals,min_score)  ## threshold=2
+                # min_score = np.asarray(min_score).flatten()
+                #min_score = heapq.nlargest(threshold_vals,min_score)  ## threshold=2
                 min_score=(sum(min_score)).item(0)
                 total_score=max_score + (min_score)
                 # total_score=total_score/float(ques1.shape[0])
