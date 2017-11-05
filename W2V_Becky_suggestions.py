@@ -72,11 +72,11 @@ for line2 in file2:
 
 
 
-def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
+def Word2Vec_score(Question, IDF_Mat, Corpus, IDF, Justification_threshold):
 
     Doc_Score=[0]
 
-    Justification_threshold=10
+
     max_score=0
     min_score=0
     #Ques_score=[]
@@ -87,8 +87,11 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
 
 
     for Jind, Justifications in enumerate(Corpus):
-        #print (Jind)
-        threshold_vals=4
+
+        threshold_vals=1
+        if Jind%1000==0:
+           print (Jind)
+           # print(threshold_vals)
         Justification_set = []
         Justifications = Justifications.strip()
         cols = Justifications.split("\t")  ## cols[0] has the question number, cols[1]  has the candidate option number for that specific question.
@@ -122,6 +125,8 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
                 Doc_Matrix=Doc_Matrix.transpose()
                 #print(Doc_Matrix.shape)
                 ques1=Question[Jind]
+                threshold_vals = math.ceil(1 * float(ques1.shape[0]))
+
                 Score=np.matmul(ques1,Doc_Matrix)
                 max_indices = np.argmax(Score, axis=1)
                 min_indices = np.argmin(Score, axis=1)
@@ -145,9 +150,9 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
                 max_score=np.amax(Score,axis=1)
 
                 max_score=np.multiply(IDF_Mat[Jind],max_score)
-                # max_score = np.multiply(Doc_IDF_Mat, max_score) ### Becky suggestion which is not working
-                # max_score = np.asarray(max_score).flatten()
-                #max_score=np.sort(max_score)
+                #max_score = np.multiply(Doc_IDF_Mat, max_score) ### Becky suggestion which is not working
+                max_score = np.asarray(max_score).flatten()
+                # max_score=np.sort(max_score)
 
                 #max_score = heapq.nlargest(threshold_vals,max_score) ## threshold=2
 
@@ -156,7 +161,7 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF):
                 min_score=np.amin(Score,axis=1)
                 min_score = np.multiply(IDF_Mat[Jind], min_score)
                 # min_score = np.multiply(Doc_IDF_Mat_min, min_score)  ### Becky suggestion which is not working
-                # min_score = np.asarray(min_score).flatten()
+                min_score = np.asarray(min_score).flatten()
                 #min_score = heapq.nlargest(threshold_vals,min_score)  ## threshold=2
                 min_score=(sum(min_score)).item(0)
                 total_score=max_score + (min_score)
@@ -263,10 +268,18 @@ for line1 in Question_file:
     IDF_Mat += [IDF_Mat1, IDF_Mat2, IDF_Mat3, IDF_Mat4]
 
 
-Score_matrix, Justification_matrix = Word2Vec_score(All_questions, IDF_Mat,  file1, IDF)
 
-print(Score_matrix)
-out_file=open("Becky_files_W2V_score_10_Final"+".txt","w")
+J_Threshold=10
+Score_matrix, Justification_matrix = Word2Vec_score(All_questions, IDF_Mat,  file1, IDF, J_Threshold)
+
+# print(Score_matrix)
+out_file=open("Becky_files_W2V_score_"+str(J_Threshold)+"Final1"+".txt","w")
 out_file.write(str(Score_matrix))
 
-print(len(Score_matrix))
+
+"""
+Score_matrix, Justification_matrix = Word2Vec_score(All_questions, IDF_Mat,  file1, 3)
+out_file=open("Becky_files_W2V_score_"+str(3)+"Final"+".txt","w")
+out_file.write(str(Score_matrix))
+
+"""
