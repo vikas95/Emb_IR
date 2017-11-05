@@ -125,7 +125,7 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF, Justification_threshold):
                 Doc_Matrix=Doc_Matrix.transpose()
                 #print(Doc_Matrix.shape)
                 ques1=Question[Jind]
-                threshold_vals = math.ceil(1 * float(ques1.shape[0]))
+                threshold_vals = int(1 * float(ques1.shape[0])) ## math.ceil
 
                 Score=np.matmul(ques1,Doc_Matrix)
                 max_indices = np.argmax(Score, axis=1)
@@ -137,9 +137,10 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF, Justification_threshold):
                         max_list.append(Doc_set[mind1])
                     else:
                         Doc_IDF_Mat = np.append(Doc_IDF_Mat, np.array([[1]]), axis=0)
-                if Jind<8:
-                   print (max_list)
-                   print (ques1.shape)
+
+                #if Jind<8:
+                   #print (max_list)
+                   #print (ques1.shape)
                 for mind1 in min_indices:
                     if Doc_set[mind1] in IDF.keys():
                         Doc_IDF_Mat_min = np.append(Doc_IDF_Mat_min, np.array([[IDF[Doc_set[mind1]]]]), axis=0)
@@ -148,24 +149,39 @@ def Word2Vec_score(Question, IDF_Mat, Corpus, IDF, Justification_threshold):
 
 
                 max_score=np.amax(Score,axis=1)
+                #print("after taking max elements only ",max_score.shape)
 
-                max_score=np.multiply(IDF_Mat[Jind],max_score)
+                #print(ques1.shape," ",max_score.shape)
+                #print(IDF_Mat[Jind])
+                #print(max_score)
+                max_score=np.multiply(np.transpose(IDF_Mat[Jind]),max_score)
+                #print("After multiplying query term IDF ",max_score.shape)
+                #print(max_score)
                 #max_score = np.multiply(Doc_IDF_Mat, max_score) ### Becky suggestion which is not working
-                max_score = np.asarray(max_score).flatten()
-                # max_score=np.sort(max_score)
+                max_score1 = np.asarray(max_score).flatten()
+                # max_score=np.sort(max_score)  ### not required as heapq takes care of that...
 
-                #max_score = heapq.nlargest(threshold_vals,max_score) ## threshold=2
+                max_score2 = heapq.nlargest(threshold_vals,max_score1) ## threshold=2
+                #print(ques1.shape," "," ", len(max_score))
 
-                max_score=(sum(max_score)).item(0)
+                max_score1_sum=(sum(max_score1))#.item(0)
+                max_score2 = (sum(max_score2))
+
+                #print(threshold_vals," " ,max_score1_sum," ",max_score2)
+
+                max_score=max_score1_sum
+
+
+
                 #print (max_score)
                 min_score=np.amin(Score,axis=1)
-                min_score = np.multiply(IDF_Mat[Jind], min_score)
+                min_score = np.multiply(np.transpose(IDF_Mat[Jind]), min_score)
                 # min_score = np.multiply(Doc_IDF_Mat_min, min_score)  ### Becky suggestion which is not working
                 min_score = np.asarray(min_score).flatten()
-                #min_score = heapq.nlargest(threshold_vals,min_score)  ## threshold=2
-                min_score=(sum(min_score)).item(0)
+                # min_score = heapq.nlargest(threshold_vals,min_score)  ## threshold=2
+                min_score=(sum(min_score))#.item(0)
                 total_score=max_score + (min_score)
-                # total_score=total_score/float(ques1.shape[0])
+                total_score=total_score/float(ques1.shape[0])
                 Document_score[Jind].append(total_score)
                 Justification_ind[Jind].append(just_ind)
 
@@ -269,11 +285,11 @@ for line1 in Question_file:
 
 
 
-J_Threshold=10
+J_Threshold=3
 Score_matrix, Justification_matrix = Word2Vec_score(All_questions, IDF_Mat,  file1, IDF, J_Threshold)
 
 # print(Score_matrix)
-out_file=open("Becky_files_W2V_score_"+str(J_Threshold)+"Final1"+".txt","w")
+out_file=open("Becky_files_W2V_score_"+str(J_Threshold)+"Final_QL"+".txt","w")
 out_file.write(str(Score_matrix))
 
 
